@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queen Bee</title>
+    <link href="/assets/css/all.css" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+    
+</head>
+<body>
+    <div class="bigContainer">
+        <div class="col1">
+            <h1>Queen Bee</h1>
+            <p>Are you the Queen Bee? Make as many words as you can with the 7 letters in only 5 minutes! You must use the center letter at least once and words must be 4 letters or more. Inspired by the NY Times Spelling Bee game.
+            </p>
+            <div class="container">
+                <div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                </div>
+            
+                <div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                    <div class="hexagon hexagon-ctr">
+                        <div class="letter center-letter" data-cell-center></div>
+                    </div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                    <div class="hexagon">
+                        <div class="letter" data-cell></div>
+                    </div>
+                </div>
+            </div>
+                <div class="controls">
+                    <div>
+                        <h3 id="letter-input" class="input"></h3>
+                        <h3 id="warning-message"></h3>
+                    </div>
+                   
+                    <button id="delete-button" class="btn"><i class="fa-solid fa-delete-left" class="btn"></i></button>
+                    <button id="shuffle-button" class="btn"><i class="fa-solid fa-shuffle"></i>
+                    <button id="enter-button" class="btn">Enter</button></button>
+                    
+                     
+                </div>
+        </div>
+        <div class="col2">
+            <div class="word-list">
+                <h2>Word List</h2>
+                    <ul id="word-list"></ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="main.js"></script>
+</body>
+</html>
