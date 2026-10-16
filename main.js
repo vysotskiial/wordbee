@@ -38,10 +38,46 @@ function MakeLetters() {
 	return {
 		inner: center,
 		outer: letters,
-		solution: ['А', 'Б', 'В', 'Г', 'Д']
+		solution: Solution(center[0], letters) 
 	}
 }
 
+async function Solution(inner, outer){
+	const response=await fetch("words.txt");
+	const text = await response.text();
+	const words = text.split("\n");
+	const possible = [...outer, inner];
+	inner=inner.toLowerCase();
+	for (let i=0; i<possible.length; i++){
+		possible[i]=possible[i].toLowerCase();
+	}
+
+  console.log(possible);
+	let result=[];
+	console.log(words.length);
+	console.log(inner)
+	console.log(inner.includes(words[0]))
+	let acceptable = 1
+	for (let word of words){
+		if (!(word.includes(inner))){
+			continue;
+		}
+		for (let letter of word){
+			acceptable=1;
+			if (!(possible.includes(letter))){
+				//console.log(letter, possible)
+				acceptable=0;
+				break;
+			}
+		}
+		if (acceptable==1){
+			console.log('Add word');
+			result.push(word);
+		}
+	}
+  console.log(result);
+	return result;
+}
 
 //SHUFFLE THE OUTER LETTERS AROUND THE CENTER LETTER
 const shuffleButton = document.getElementById("shuffle-button")
