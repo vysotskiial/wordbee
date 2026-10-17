@@ -7,56 +7,97 @@ const deleteButton = document.getElementById("delete-button")
 const enterButton = document.getElementById('enter-button')
 const warningMessage = document.getElementById('warning-message')
 
+let words_from_file = ''
+
 
 //LOAD LETTERS ON PAGE LOAD
-document.body.onload = function() {
-    outerCell.forEach((element,index)=>{
-      element.innerText = gameLetters.outer[index]
-    })
-    innerCell.innerText = gameLetters.inner
+
+let gameLetters;
+
+async function prepare() {
+	await fetch_file()
+	gameLetters = MakeLetters()
+
+	outerCell.forEach((element,index)=>{
+		element.innerText = gameLetters.outer[index]
+	})
+	innerCell.innerText = gameLetters.inner
+}
+prepare()
+
+function randLetter() {
+	let alphabet = {
+'А':0.11374635257277062,
+'О':0.20478524660166536,
+'Е':0.28350740160842647,
+'И':0.3607394491495267,
+'К':0.4280567219414988,
+'Р':0.4926962493772685,
+'Н':0.5570288591559319,
+'Т':0.6134349868336773,
+'С':0.657430965767561,
+'Л':0.7012935022418333,
+'П':0.7339201836168244,
+'В':0.7620409579389368,
+'М':0.789209842715821,
+'Д':0.815044302896591,
+'У':0.8392463169881148,
+'Б':0.8576524802505161,
+'З':0.8748176286385312,
+'Г':0.8919382962066758,
+'Я':0.9061766066472138,
+'Ч':0.919676535477902,
+'Ь':0.9330430218489787,
+'Ш':0.9436739377980214,
+'Ц':0.953348516119849,
+'Ф':0.9613061347946764,
+'Х':0.9689835243043199,
+'Ж':0.9761226958935306,
+'Й':0.9829816383175574,
+'Ы':0.989257882001281,
+'Щ':0.9935947619386519,
+'Ю':0.996717315493559,
+'Э':0.9993772685218132,
+'Ъ':0.9999999999999998,
+	}
+	let p = Math.random(0, 1);
+	for (let letter in alphabet) {
+		if (alphabet[letter] > p) {
+			return letter;
+		}
+	}
+	return 'Ъ'
 }
 
-let gameLetters = MakeLetters()
-
 function randInt(max, min = 0) {
-	return Math.floor(Math.random()*(max - min) + min)
+	return Math.floor(Math.random() * max + min);
 }
 
 //GAME LETTERS AND SOLUTIONS
 function MakeLetters() {
-	let alphabet = [..."АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"];
-	let letters = [];
-
+	letters = []
 	while (letters.length < 7) {
-		let letter = alphabet[randInt(alphabet.length)];
+		let letter = randLetter();
 		if (!letters.includes(letter)) letters.push(letter);
 	}
 
-	let inner_idx = randInt(7)
-	let center = letters.splice(inner_idx, 1)
+	let inner_idx = randInt(7);
+	let center = letters.splice(inner_idx, 1);
+	let result = Solution(center[0], letters);
+	console.log(result)
 
 	return {
 		inner: center,
 		outer: letters,
-		solution: Solution(center[0], letters) 
+		solution: result
 	}
 }
 
-async function Solution(inner, outer){
-	const response=await fetch("words.txt");
-	const text = await response.text();
-	const words = text.split("\n");
+function Solution(inner, outer) {
+	const words = words_from_file.split("\n");
 	const possible = [...outer, inner];
-	inner=inner.toLowerCase();
-	for (let i=0; i<possible.length; i++){
-		possible[i]=possible[i].toLowerCase();
-	}
-
   console.log(possible);
 	let result=[];
-	console.log(words.length);
-	console.log(inner)
-	console.log(inner.includes(words[0]))
 	let acceptable = 1
 	for (let word of words){
 		if (!(word.includes(inner))){
@@ -65,18 +106,19 @@ async function Solution(inner, outer){
 		for (let letter of word){
 			acceptable=1;
 			if (!(possible.includes(letter))){
-				//console.log(letter, possible)
 				acceptable=0;
 				break;
 			}
 		}
 		if (acceptable==1){
-			console.log('Add word');
 			result.push(word);
 		}
 	}
-  console.log(result);
 	return result;
+}
+
+async function fetch_file(){
+	words_from_file = await(await(fetch("filtered_words.txt"))).text();
 }
 
 //SHUFFLE THE OUTER LETTERS AROUND THE CENTER LETTER
@@ -123,6 +165,7 @@ function deleteLetter(){
 enterButton.addEventListener('click', checkWord)
 
 function checkWord(){
+	 //console.log(gameLetters.solution)
    let word =  letterInput.textContent
    let centerLetter = document.querySelector('.center-letter').textContent
    if (word.length < 4){
