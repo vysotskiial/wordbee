@@ -26,13 +26,21 @@ p {
 }
 
 .bigContainer {
+	width: 100%;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
 }
 
+.bigContainer p {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+
 .col1 {
-    min-width: 75%;
+    min-width: 100%;
 }
 
 .col2 {
@@ -52,18 +60,19 @@ p {
     flex-flow: column;
     align-items: center;
     margin: 0 auto;
-    width: 400px;
-    height: 400px;
+    width: min(400px, 95%);
+    height: height;
     border-radius: 50%;
-  
     justify-content: center;
     font-weight: bold;
-
 }
+
 .hexagon {
     width: 120px;
     height: 120px;
-    background-image: url(/assets/hexagon.svg);
+    background-image: url(/assets/hexagon.png);
+		background-size: 100%, 100%;
+		background-repeat: no-repeat;
     position: relative;
     display: inline-block;
     margin: -10px 0.2em;
@@ -71,7 +80,9 @@ p {
 }
 
 .hexagon:hover{
-    background-image: url(/assets/hexagon-hover.svg);
+    background-image: url(/assets/hexagon.png);
+		background-size: 100%, 100%;
+		background-repeat: no-repeat;
     cursor: pointer;
     
 }
@@ -79,13 +90,23 @@ p {
 .hexagon-ctr {
     width: 120px;
     height: 120px;
-    background-image: url(/assets/hexagon.svg);
+    background-image: url(/assets/hexagon.png);
     position: relative;
     display: inline-block;
     margin: -10px 0.2em;
     transition: background-image .5s ease-out;
     filter: invert(0%) sepia(0%) saturate(100%) hue-rotate(188deg) brightness(102%) contrast(101%);
 }
+
+@media (max-width: 400px) {
+  .hexagon,
+	.hexagon-ctr {
+    width: 28vw;
+    height: 28vw;
+    margin-inline: 0;
+  }
+}
+
 .letter {
     text-align: center;
     position: absolute;

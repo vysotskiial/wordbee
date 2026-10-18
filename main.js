@@ -90,7 +90,35 @@ function MakeLetters() {
 		inner: center,
 		outer: letters,
 		solution: result
+	};
+}
+
+function LengthTable(words) {
+	const table = {};
+	const longest = Math.max(...words.map(word => word.length));
+	for (word of words) {
+		if (!(word[0] in table)) {
+			table[word[0]] = {};
+			for (let length = 4; length <= longest; length++) {
+				table[word[0]][length] = 0;
+			}
+		}
+		table[word[0]][word.length] = table[word[0]][word.length] + 1;
 	}
+	return table;
+}
+
+function StartsTable(words) {
+	const table = {};
+	const longest = words.length;
+	for (word of words) {
+		const start = word.slice(0, 2);
+		if (!(start in table)) {
+			table[start] = 0;
+		}
+		table[start] = table[start] + 1;
+	}
+	return table;
 }
 
 function Solution(inner, outer) {
