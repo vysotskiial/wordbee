@@ -2,30 +2,48 @@ const outerCell = document.querySelectorAll('[data-cell]')
 const innerCell = document.querySelector('[data-cell-center]')
 const hexagon = document.querySelectorAll('.hexagon')
 const letter = document.querySelectorAll('.letter')
-const letterInput = document.querySelector('#letter-input')
 const deleteButton = document.getElementById("delete-button")
 const enterButton = document.getElementById('enter-button')
-const warningMessage = document.getElementById('warning-message')
+const letterInput = document.querySelector('#letter-input')
+const maxScore = document.getElementById("maxscore")
+const maxWords = document.getElementById("maxwords")
+const numFound = document.getElementById("numfound")
+const currScore = document.getElementById("score")
+const found_words = document.querySelector("#found_preview");
+const toggle_collapse = document.querySelector("#toggleText");
+
+toggle_collapse.addEventListener("click", () => {
+	const expanded = found_words.classList.toggle("is-expanded");
+	toggle_collapse.classList.toggle("is-expanded", expanded);
+	toggle_collapse.setAttribute("aria-expanded", String(expanded));
+	toggle_collapse.setAttribute("aria-label", expanded ? "show less" : "show more");
+});
 
 let words_from_file = ''
 
 
-//LOAD LETTERS ON PAGE LOAD
+//load letters on page load
 
-let gameLetters;
+let gameletters;
+let score = 0;
+let found = [];
+let word_score = 0;
+let guessed_words;
 
 async function prepare() {
 	await fetch_file()
-	gameLetters = MakeLetters()
+	gameletters = makeletters()
 
 	outerCell.forEach((element,index)=>{
-		element.innerText = gameLetters.outer[index]
+		element.innerText = gameletters.outer[index]
 	})
-	innerCell.innerText = gameLetters.inner
+	innerCell.innerText = gameletters.inner
+	maxScore.innerHTML = maxscore()
+	maxWords.innerHTML = maxwords()
 }
 prepare()
 
-function randLetter() {
+function randletter() {
 	let alphabet = {
 'А':0.11374635257277062,
 'О':0.20478524660166536,
@@ -66,24 +84,24 @@ function randLetter() {
 			return letter;
 		}
 	}
-	return 'Ъ'
+	return 'ъ'
 }
 
-function randInt(max, min = 0) {
+function randint(max, min = 0) {
 	return Math.floor(Math.random() * max + min);
 }
 
-//GAME LETTERS AND SOLUTIONS
-function MakeLetters() {
+//game letters and solutions
+function makeletters() {
 	letters = []
 	while (letters.length < 7) {
-		let letter = randLetter();
+		let letter = randletter();
 		if (!letters.includes(letter)) letters.push(letter);
 	}
 
-	let inner_idx = randInt(7);
+	let inner_idx = randint(7);
 	let center = letters.splice(inner_idx, 1);
-	let result = Solution(center[0], letters);
+	let result = solution(center[0], letters);
 	console.log(result)
 
 	return {
@@ -93,7 +111,7 @@ function MakeLetters() {
 	};
 }
 
-function LengthTable(words) {
+function lengthtable(words) {
 	const table = {};
 	const longest = Math.max(...words.map(word => word.length));
 	for (word of words) {
@@ -108,7 +126,7 @@ function LengthTable(words) {
 	return table;
 }
 
-function StartsTable(words) {
+function startstable(words) {
 	const table = {};
 	const longest = words.length;
 	for (word of words) {
@@ -121,10 +139,29 @@ function StartsTable(words) {
 	return table;
 }
 
-function Solution(inner, outer) {
+function maxscore()
+{
+	let score = 0;
+	for (word of gameletters.solution) {
+		if (word.length == 4) {
+			score = score + 1;
+		}
+		else {
+			score = score + word.length;
+		}
+	}
+	return String(score);
+}
+
+function maxwords()
+{
+	return String(gameletters.solution.length)
+}
+
+function solution(inner, outer) {
 	const words = words_from_file.split("\n");
 	const possible = [...outer, inner];
-  console.log(possible);
+	console.log(possible);
 	let result=[];
 	let acceptable = 1
 	for (let word of words){
@@ -149,74 +186,107 @@ async function fetch_file(){
 	words_from_file = await(await(fetch("filtered_words.txt"))).text();
 }
 
-//SHUFFLE THE OUTER LETTERS AROUND THE CENTER LETTER
-const shuffleButton = document.getElementById("shuffle-button")
-shuffleButton.addEventListener('click', shuffle)
+//shuffle the outer letters around the center letter
+const shufflebutton = document.getElementById("shuffle-button")
+shufflebutton.addEventListener('click', shuffle)
 
 function shuffle(array) {
-    array = gameLetters.outer
+	array = gameletters.outer
 
-    for (let i = array.length - 1; i > 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1)); 
-      [array[i], array[j]] = [array[j], array[i]];
-    } //Fisher-Yates algo
+	for (let i = array.length - 1; i > 0; i--) {
+		let j = Math.floor(Math.random() * (i + 1)); 
+		[array[i], array[j]] = [array[j], array[i]];
+	} //fisher-yates algo
 
-    outerCell.forEach((element,index)=>{
-        element.innerText = array[index]
-      })
+	outerCell.forEach((element,index)=>{
+		element.innerText = array[index]
+	})
 }
 
-//ADD EVENT LISTENER TO EVERY LETTER
-function selectLetter(){
-    letter.forEach(letter => {
-        letter.addEventListener('click', handleClick)  
-    })
+//add event listener to every letter
+function selectletter(){
+	letter.forEach(letter => {
+		letter.addEventListener('click', handleclick);
+		letter.addEventListener('mousedown', (event) => {
+			if (event.detail > 1) {
+				event.preventDefault();
+			}
+		});
+	})
 }
-selectLetter()
-    
-//TAKE SELECTED LETTER AND ADD TO INPUT
-function handleClick(e){
-    e = e;
-    let target = e.target;
-    let text = target.textContent
-    letterInput.innerText += text
-    warningMessage.textContent = ""
-}
+selectletter()
 
-//DELETE BUTTON + BACKSPACE INPUT
-deleteButton.addEventListener('click', deleteLetter)
-function deleteLetter(){
-    letterInput.textContent = letterInput.textContent.substring(0, letterInput.textContent.length - 1);
+//take selected letter and add to input
+function handleclick(e){
+	e = e;
+	let target = e.target;
+	let text = target.textContent
+	letterInput.innerText += text
 }
 
-//ENTER BUTTON + CHECKWORD
-enterButton.addEventListener('click', checkWord)
-
-function checkWord(){
-	 //console.log(gameLetters.solution)
-   let word =  letterInput.textContent
-   let centerLetter = document.querySelector('.center-letter').textContent
-   if (word.length < 4){
-        warningMessage.innerText = 'Too short! Must use at least 4 letters!'
-       letterInput.textContent = ""
-   } else if (word.includes(centerLetter) !== true){
-        warningMessage.innerText = 'Must include center letter!'
-    letterInput.textContent = ""
-   } else if (gameLetters.solution.includes(word) !== true)  {
-        warningMessage.innerText = 'Word not in list, please try again!'
-        letterInput.textContent = ""
-   } else if (gameLetters.solution.includes(word)){
-        warningMessage.innerText = 'Great job!'
-        letterInput.textContent = ""
-
-        let ul = document.getElementById('word-list')
-        let li = document.createElement('li')
-        li.appendChild(document.createTextNode(word))
-        ul.appendChild(li)
-   }
+//delete button + backspace input
+deleteButton.addEventListener('click', deleteletter)
+function deleteletter(){
+	letterInput.textContent = letterInput.textContent.substring(0, letterInput.textContent.length - 1);
 }
-//need a function to check if ALL words have been found/when last word has been found
-//need a 5 minute timer - show the words that have not been found
 
+//enter button + checkword
+enterButton.addEventListener('click', checkword)
 
+function checkword(){
+	//console.log(gameletters.solution)
+	let word =  letterInput.textContent
+	letterInput.textContent = ""
+	if (word.length < 4)
+		wronginput("#too-short");
+	else if (word.includes(gameletters.inner) !== true)
+		wronginput("#miss-center");
+	else if (gameletters.solution.includes(word) !== true)
+		wronginput("#invalid-word");
+	else if (found.includes(word))
+		wronginput("#already-found");
+	else if (gameletters.solution.includes(word)){
+		word_score = word.length;
+		if (ispangram(word)) {
+			word_score = word_score + 7;
+			rightword("#pangram", word);
+			return;
+		}
+		if (word.length == 4) {
+			word_score = word_score - 3;
+			rightword("#good", word)
+		}
+		else if (word.length < 7) {
+			rightword("#great", word)
+		}
+		else {
+			rightword("#amazing", word);
+		}
+	}
+}
 
+function ispangram(word) {
+	for (l of gameletters.outer) {
+		if (!(word.includes(l))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function rightword(selector, word) {
+	$(".points").html("+" + word_score);
+	$(selector).fadeIn(1000);
+	$(selector).fadeOut(500);
+	found.push(word);
+	numFound.innerHTML = found.length;
+	score = score + word_score;
+	currScore.innerHTML = score;
+	found_words.prepend(document.createTextNode(word + " · "));
+}
+
+function wronginput(selector){
+	$(selector).fadeIn(1000);
+	$(selector).fadeOut(500);
+	$("#letter-input").effect("shake", {times:2.5}, 450, function(){} );
+}

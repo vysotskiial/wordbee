@@ -1,71 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queen Bee</title>
-    <link href="/assets/css/all.css" rel="stylesheet">
-    <link rel="stylesheet" href="main.css">
-    
-</head>
-<body>
-    <div class="bigContainer">
-        <div class="col1">
-            <h1>Queen Bee</h1>
-            <p>Are you the Queen Bee? You must use the center letter at least once and words must be 4 letters or more. In loving memory of wordbee.ru.
-            </p>
-            <div class="container">
-                <div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                </div>
-            
-                <div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                    <div class="hexagon hexagon-ctr">
-                        <div class="letter center-letter" data-cell-center></div>
-                    </div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                    <div class="hexagon">
-                        <div class="letter" data-cell></div>
-                    </div>
-                </div>
-            </div>
-                <div class="controls">
-                    <div>
-                        <h3 id="letter-input" class="input"></h3>
-                        <h3 id="warning-message"></h3>
-                    </div>
-                   
-                    <button id="delete-button" class="btn"><i class="fa-solid fa-delete-left" class="btn"></i></button>
-                    <button id="shuffle-button" class="btn"><i class="fa-solid fa-shuffle"></i>
-                    <button id="enter-button" class="btn">Enter</button></button>
-                    
-                     
-                </div>
-        </div>
-        <div class="col2">
-            <div class="word-list">
-                <h2>Word List</h2>
-                    <ul id="word-list"></ul>
-            </div>
-        </div>
-    </div>
-    
-    <script src="main.js"></script>
-</body>
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Queen Bee</title>
+		<link href="assets/css/all.css" rel="stylesheet">
+		<link rel="stylesheet" href="main.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script src = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js"></script>
+
+	</head>
+	<body>
+		<div class="bigContainer">
+			<h2>Queen Bee</h2>
+
+			<div class="scoreText" style="margin-bottom:8px;">Found: <span id="numfound">0</span>/<span id="maxwords">0</span> word(s). Score: <span id="score">0</span>/<span id="maxscore">0</span>.</div>
+
+			<div class="found_words">
+				<span id="found_preview" class="text-preview">
+				</span>
+				<button
+						id="toggleText"
+						class="toggle"
+						type="button"
+						aria-label="Show more"
+						aria-expanded="false"
+						> ⌄ </button>
+			</div>
+
+			<div class="controls">
+				<div>
+					<h3 id="letter-input" class="input"></h3>
+					<h3 id="warning-message"></h3>
+				</div>
+			</div>
+
+			<div>
+				<p id="too-short" class="notifications">Too Short</p>
+				<p id="good" class="notifications">Good! <span class="points"></span></p>
+				<p id="great" class="notifications">Great! <span class="points"></span></p>
+				<p id="amazing" class="notifications">Amazing! <span class="points"></span></p>
+				<p id="pangram" class="notifications">Pangram! <span class="points"></span></p>
+				<p id="already-found" class="notifications">Already Found</p>
+				<p id="invalid-word" class="notifications">Invalid Word</p>
+				<p id="miss-center" class="notifications">Missing Center Letter</p>
+			</div>
+		</div>
+
+			<div class="container">
+				<div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+				</div>
+				<div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+					<div class="hexagon hexagon-ctr">
+						<div class="letter center-letter" data-cell-center></div>
+					</div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+				</div>
+				<div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+					<div class="hexagon">
+						<div class="letter" data-cell></div>
+					</div>
+				</div>
+			</div>
+			<div class="controls">
+				<button id="delete-button" class="btn"><i class="fa-solid fa-delete-left" class="btn"></i></button>
+				<button id="shuffle-button" class="btn"><i class="fa-solid fa-shuffle"></i></button>
+				<button id="enter-button" class="btn">Enter</button>
+			</div>
+		</div>
+
+		<script src="main.js"></script>
+	</body>
 </html>
