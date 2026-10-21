@@ -54,8 +54,8 @@ p {
 }
 
 .hexagon {
-    width: 120px;
-    height: 120px;
+    width: min(120px, calc(30vw - 0.4em));
+		aspect-ratio: 1;
     background-image: url(assets/hexagon.png);
 		background-size: 100%, 100%;
 		background-repeat: no-repeat;
@@ -74,8 +74,8 @@ p {
 }
 
 .hexagon-ctr {
-    width: 120px;
-    height: 120px;
+    width: min(120px, calc(30vw - 0.4em));
+		aspect-ratio: 1;
     background-image: url(assets/hexagon.png);
     position: relative;
     display: inline-block;
