@@ -30,18 +30,112 @@ let found = [];
 let word_score = 0;
 let guessed_words;
 
+function prepareHintsTable() {
+	hint_lengths = lengthtable(gameletters.solution);
+	const hints_container = document.getElementById("hintsTable");
+	const table = document.createElement("table");
+	const header = table.createTHead().insertRow();
+
+	const inner_dicts = Object.values(hint_lengths);
+	const inner_keys = inner_dicts.flatMap(dict => Object.keys(dict));
+	let possible_lengths = [...new Set(inner_keys)]
+	possible_lengths = possible_lengths.sort((a, b) => Number(a) - Number(b));
+
+	const thead = document.createElement("thead");
+	const headerRow = document.createElement("tr");
+	for (const column of [" ", ...possible_lengths]) {
+		const th = document.createElement("th");
+		th.textContent = column;
+		headerRow.appendChild(th);
+	}
+
+	thead.appendChild(headerRow);
+	table.appendChild(thead);
+	const tbody = document.createElement("tbody");
+
+	for (const [letter, entries] of Object.entries(hint_lengths)) {
+		const row = document.createElement("tr");
+
+		const letterCell = document.createElement("th");
+		letterCell.scope = "row";
+		letterCell.textContent = letter;
+		row.appendChild(letterCell);
+
+		for (const key of possible_lengths) {
+			const cell = document.createElement("td");
+			cell.textContent = entries[key] ?? "";
+			row.appendChild(cell);
+		}
+
+		tbody.appendChild(row);
+	}
+
+	table.appendChild(tbody);
+	const columnCount = possible_lengths.length + 1;
+	table.style.width = "95%";
+	table.style.tableLayout = "fixed";
+	for (const cell of table.querySelectorAll("th, td")) {
+		cell.style.width = `${100/columnCount}%`;
+	}
+	hints_container.replaceChildren(table);
+}
+
+function prepareHintsColumns() {
+	const pairsPerRow = 4;
+	let starts_data = startstable(gameletters.solution);
+	const numberTable = document.createElement("table");
+	const numberBody = document.createElement("tbody");
+	const entries = Object.entries(starts_data);
+
+	// Each row holds several letter/value pairs
+	for (let i = 0; i < entries.length; i += pairsPerRow) {
+		const row = document.createElement("tr");
+
+		for (let j = 0; j < pairsPerRow; j++) {
+			const entry = entries[i + j];
+
+			if (entry) {
+				const [letter, value] = entry;
+				const letterCell = document.createElement("th");
+				const valueCell = document.createElement("td");
+
+				letterCell.textContent = letter;
+				valueCell.textContent = value;
+				row.append(letterCell, valueCell);
+			} else {
+				// Keep the final row's columns aligned
+				row.append(document.createElement("th"), document.createElement("td"));
+			}
+		}
+
+		numberBody.appendChild(row);
+	}
+
+	numberTable.style.width = "95%";
+	numberTable.style.tableLayout = "fixed";
+	for (const cell of numberTable.querySelectorAll("th, td")) {
+		cell.style.width = `${100/pairsPerRows}%`;
+	}
+
+	numberTable.appendChild(numberBody);
+	document.getElementById("hintsColumns").replaceChildren(numberTable);
+}
+
 async function prepare() {
-	await fetch_file()
-	gameletters = makeletters()
+	await fetch_file();
+	gameletters = makeletters();
 
 	outerCell.forEach((element,index)=>{
-		element.innerText = gameletters.outer[index]
-	})
-	innerCell.innerText = gameletters.inner
-	maxScore.innerHTML = maxscore()
-	maxWords.innerHTML = maxwords()
+		element.innerText = gameletters.outer[index];
+	});
+	innerCell.innerText = gameletters.inner;
+	maxScore.innerHTML = maxscore();
+	maxWords.innerHTML = maxwords();
+	prepareHintsTable();
+	prepareHintsColumns();
 }
-prepare()
+
+prepare();
 
 function randletter() {
 	let alphabet = {
@@ -113,6 +207,7 @@ function makeletters() {
 
 function lengthtable(words) {
 	const table = {};
+	console.log(words)
 	const longest = Math.max(...words.map(word => word.length));
 	for (word of words) {
 		if (!(word[0] in table)) {
@@ -290,3 +385,15 @@ function wronginput(selector){
 	$(selector).fadeOut(500);
 	$("#letter-input").effect("shake", {times:2.5}, 450, function(){} );
 }
+
+const popup = document.getElementById("popup");
+const openBtn = document.getElementById("open-button");
+const closeBtn = document.getElementById("closeBtn");
+
+openBtn.addEventListener("click", () => {
+  popup.style.display = "flex";
+});
+
+closeBtn.addEventListener("click", () => {
+  popup.style.display = "none";
+});

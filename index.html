@@ -80,7 +80,17 @@
 			<div class="controls">
 				<button id="delete-button" class="btn"><i class="fa-solid fa-delete-left" class="btn"></i></button>
 				<button id="shuffle-button" class="btn"><i class="fa-solid fa-shuffle"></i></button>
+				<button id="open-button" class="btn">Help</button>
 				<button id="enter-button" class="btn">Enter</button>
+			</div>
+
+			<div id="popup" class="popup_page">
+				<div class="popup_content" aria-labelledby="hints">
+					<button id="closeBtn" class="close-button" aria-label="Close hints"> &times; </button>
+					<h2 id="hints">Hints</h2>
+					<div id="hintsTable"></div>
+					<div id="hintsColumns"></div>
+				</div>
 			</div>
 		</div>
 
