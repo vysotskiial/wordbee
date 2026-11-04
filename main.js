@@ -1,40 +1,164 @@
-const outerCell = document.querySelectorAll('[data-cell]')
-const innerCell = document.querySelector('[data-cell-center]')
-const hexagon = document.querySelectorAll('.hexagon')
-const letter = document.querySelectorAll('.letter')
-const deleteButton = document.getElementById("delete-button")
-const enterButton = document.getElementById('enter-button')
-const letterInput = document.querySelector('#letter-input')
-const maxScore = document.getElementById("maxscore")
-const maxWords = document.getElementById("maxwords")
-const numFound = document.getElementById("numfound")
-const currScore = document.getElementById("score")
-const found_words = document.querySelector("#found_preview");
-const toggle_collapse = document.querySelector("#toggleText");
+// Game state
+let gameLetters = {inner: '', outer: []};
+let gameSolution = [];
+let score = 0;
+let found = [];
+let word_score = 0;
+let guessed_words;
+let words_from_file = ''
 
+// control buttons
+const letterInput = document.querySelector('#letter-input')
+
+document.getElementById("delete-button").addEventListener('click', () => {
+	letterInput.textContent = letterInput.textContent.substring(0, letterInput.textContent.length - 1);
+});
+
+function isPangram(word) {
+	for (l of gameLetters.outer) {
+		if (!(word.includes(l))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function rightWord(selector, word) {
+	$(".points").html("+" + word_score);
+	$(selector).fadeIn(1000);
+	$(selector).fadeOut(500);
+	score = score + word_score;
+	document.getElementById("score").innerHTML = score;
+	found.push(word);
+	found.sort()
+	document.getElementById("numfound").innerHTML = found.length;
+	document.querySelector("#found_preview").innerHTML = found.join(" · ");
+
+	// Modify hint tables accordingly
+	const ht = document.getElementById("hints_table");
+	let l = word[0];
+	let i = 0, j = 0;
+	for (; i < ht.rows.length; i++) {
+		if (ht.rows[i].cells[0].textContent == l)
+			break;
+	}
+	for (; j < ht.rows[0].cells.length; j++)
+		if (ht.rows[0].cells[j].textContent == word.length)
+			break;
+	const cell = ht.rows[i].cells[j];
+	cell.textContent = String(Number(cell.textContent) - 1);
+
+	const nt = document.getElementById("numberTable");
+	for (i = 0; i < nt.rows.length; i++) {
+		for (j = 0; j < nt.rows[i].cells.length; j = j + 2) {
+			const key_cell = nt.rows[i].cells[j];
+			if (key_cell.textContent == word.slice(0, 2)) {
+				const value_cell = nt.rows[i].cells[j + 1];
+				value_cell.textContent = String(Number(value_cell.textContent) - 1);
+				return;
+			}
+		}
+	}
+}
+
+function wrongInput(selector){
+	$(selector).fadeIn(1000);
+	$(selector).fadeOut(500);
+	$("#letter-input").effect("shake", {times:2.5}, 450, function(){} );
+}
+
+document.getElementById('enter-button').addEventListener('click', () => {
+	let word =  letterInput.textContent
+	letterInput.textContent = ""
+	if (word.length < 4)
+		wrongInput("#too-short");
+	else if (word.includes(gameLetters.inner) !== true)
+		wrongInput("#miss-center");
+	else if (gameSolution.includes(word) !== true)
+		wrongInput("#invalid-word");
+	else if (found.includes(word))
+		wrongInput("#already-found");
+	else if (gameSolution.includes(word)){
+		word_score = word.length;
+		if (isPangram(word)) {
+			word_score = word_score + 7;
+			rightWord("#pangram", word);
+			return;
+		}
+		if (word.length == 4) {
+			word_score = word_score - 3;
+			rightWord("#good", word)
+		}
+		else if (word.length < 7) {
+			rightWord("#great", word)
+		}
+		else {
+			rightWord("#amazing", word);
+		}
+	}
+});
+
+//shuffle the outer letters around the center letter
+function putLetters() {
+	const outerCell = document.querySelectorAll('[data-cell]')
+	outerCell.forEach((element,index)=>{
+		element.innerText = gameLetters.outer[index];
+	});
+}
+
+const shufflebutton = document.getElementById("shuffle-button")
+shufflebutton.addEventListener('click', () => {
+	array = gameLetters.outer
+
+	for (let i = array.length - 1; i > 0; i--) {
+		let j = Math.floor(Math.random() * (i + 1)); 
+		[array[i], array[j]] = [array[j], array[i]];
+	} //fisher-yates algo
+	putLetters();
+});
+
+// hint button
+const popup = document.getElementById("popup");
+const openBtn = document.getElementById("open-button");
+const closeBtn = document.getElementById("closeBtn");
+
+openBtn.addEventListener("click", () => {
+  popup.style.display = "flex";
+});
+
+closeBtn.addEventListener("click", () => {
+  popup.style.display = "none";
+});
+
+// letter clicks
+const letter = document.querySelectorAll('.letter')
+letter.forEach(letter => {
+	letter.addEventListener('click', (e) => {
+		letterInput.innerText += e.target.textContent;
+	});
+	letter.addEventListener('mousedown', (event) => {
+		if (event.detail > 1) {
+			event.preventDefault(); // prevent text selection with double click
+		}
+	});
+})
+
+// Found words list popup
+const toggle_collapse = document.querySelector("#toggleText");
 toggle_collapse.addEventListener("click", () => {
+	const found_words = document.querySelector("#found_preview");
 	const expanded = found_words.classList.toggle("is-expanded");
 	toggle_collapse.classList.toggle("is-expanded", expanded);
 	toggle_collapse.setAttribute("aria-expanded", String(expanded));
 	toggle_collapse.setAttribute("aria-label", expanded ? "show less" : "show more");
 });
 
-let words_from_file = ''
-
-
-//load letters on page load
-
-let gameletters;
-let score = 0;
-let found = [];
-let word_score = 0;
-let guessed_words;
-
+// Preparations before starting
 function prepareHintsTable() {
-	hint_lengths = lengthtable(gameletters.solution);
+	hint_lengths = lengthtable(gameSolution);
 	const hints_container = document.getElementById("hintsTable");
 	const table = document.createElement("table");
-	const header = table.createTHead().insertRow();
+	table.id = "hints_table";
 
 	const inner_dicts = Object.values(hint_lengths);
 	const inner_keys = inner_dicts.flatMap(dict => Object.keys(dict));
@@ -82,8 +206,9 @@ function prepareHintsTable() {
 
 function prepareHintsColumns() {
 	const pairsPerRow = 4;
-	let starts_data = startstable(gameletters.solution);
+	let starts_data = startstable(gameSolution);
 	const numberTable = document.createElement("table");
+	numberTable.id = "numberTable";
 	const numberBody = document.createElement("tbody");
 	const entries = Object.entries(starts_data);
 
@@ -120,22 +245,6 @@ function prepareHintsColumns() {
 	numberTable.appendChild(numberBody);
 	document.getElementById("hintsColumns").replaceChildren(numberTable);
 }
-
-async function prepare() {
-	await fetch_file();
-	gameletters = makeletters();
-
-	outerCell.forEach((element,index)=>{
-		element.innerText = gameletters.outer[index];
-	});
-	innerCell.innerText = gameletters.inner;
-	maxScore.innerHTML = maxscore();
-	maxWords.innerHTML = maxwords();
-	prepareHintsTable();
-	prepareHintsColumns();
-}
-
-prepare();
 
 function randletter() {
 	let alphabet = {
@@ -186,28 +295,45 @@ function randint(max, min = 0) {
 }
 
 //game letters and solutions
-function makeletters() {
+function makeLetters() {
 	letters = []
 	while (letters.length < 7) {
 		let letter = randletter();
 		if (!letters.includes(letter)) letters.push(letter);
 	}
 
-	let inner_idx = randint(7);
-	let center = letters.splice(inner_idx, 1);
-	let result = solution(center[0], letters);
-	console.log(result)
+	let center = letters.splice(randint(7), 1);
 
-	return {
-		inner: center,
-		outer: letters,
-		solution: result
-	};
+	gameLetters.inner = center[0];
+	gameLetters.outer = letters;
+}
+
+function makeSolution() {
+	const words = words_from_file.split("\n");
+	console.log(gameLetters.inner)
+	const possible = [...gameLetters.outer, gameLetters.inner];
+	let result=[];
+	let acceptable = 1
+	for (let word of words){
+		if (!(word.includes(gameLetters.inner))){
+			continue;
+		}
+		for (let letter of word){
+			acceptable=1;
+			if (!(possible.includes(letter))){
+				acceptable=0;
+				break;
+			}
+		}
+		if (acceptable==1){
+			gameSolution.push(word);
+		}
+	}
+	console.log(gameSolution)
 }
 
 function lengthtable(words) {
 	const table = {};
-	console.log(words)
 	const longest = Math.max(...words.map(word => word.length));
 	for (word of words) {
 		if (!(word[0] in table)) {
@@ -237,163 +363,40 @@ function startstable(words) {
 function maxscore()
 {
 	let score = 0;
-	for (word of gameletters.solution) {
+	for (word of gameSolution) {
 		if (word.length == 4) {
 			score = score + 1;
 		}
 		else {
 			score = score + word.length;
 		}
+		if (isPangram(word))
+			score = score + 7;
 	}
 	return String(score);
 }
 
 function maxwords()
 {
-	return String(gameletters.solution.length)
+	return String(gameSolution.length)
 }
 
-function solution(inner, outer) {
-	const words = words_from_file.split("\n");
-	const possible = [...outer, inner];
-	console.log(possible);
-	let result=[];
-	let acceptable = 1
-	for (let word of words){
-		if (!(word.includes(inner))){
-			continue;
-		}
-		for (let letter of word){
-			acceptable=1;
-			if (!(possible.includes(letter))){
-				acceptable=0;
-				break;
-			}
-		}
-		if (acceptable==1){
-			result.push(word);
-		}
-	}
-	return result;
-}
 
 async function fetch_file(){
 	words_from_file = await(await(fetch("filtered_words.txt"))).text();
 }
 
-//shuffle the outer letters around the center letter
-const shufflebutton = document.getElementById("shuffle-button")
-shufflebutton.addEventListener('click', shuffle)
+async function prepare() {
+	await fetch_file();
+	makeLetters();
+	makeSolution();
+	document.querySelector('[data-cell-center]').innerText = gameLetters.inner;
 
-function shuffle(array) {
-	array = gameletters.outer
-
-	for (let i = array.length - 1; i > 0; i--) {
-		let j = Math.floor(Math.random() * (i + 1)); 
-		[array[i], array[j]] = [array[j], array[i]];
-	} //fisher-yates algo
-
-	outerCell.forEach((element,index)=>{
-		element.innerText = array[index]
-	})
+	putLetters();
+	document.getElementById("maxscore").innerHTML = maxscore();
+	document.getElementById("maxwords").innerHTML = maxwords();
+	prepareHintsTable();
+	prepareHintsColumns();
 }
 
-//add event listener to every letter
-function selectletter(){
-	letter.forEach(letter => {
-		letter.addEventListener('click', handleclick);
-		letter.addEventListener('mousedown', (event) => {
-			if (event.detail > 1) {
-				event.preventDefault();
-			}
-		});
-	})
-}
-selectletter()
-
-//take selected letter and add to input
-function handleclick(e){
-	e = e;
-	let target = e.target;
-	let text = target.textContent
-	letterInput.innerText += text
-}
-
-//delete button + backspace input
-deleteButton.addEventListener('click', deleteletter)
-function deleteletter(){
-	letterInput.textContent = letterInput.textContent.substring(0, letterInput.textContent.length - 1);
-}
-
-//enter button + checkword
-enterButton.addEventListener('click', checkword)
-
-function checkword(){
-	//console.log(gameletters.solution)
-	let word =  letterInput.textContent
-	letterInput.textContent = ""
-	if (word.length < 4)
-		wronginput("#too-short");
-	else if (word.includes(gameletters.inner) !== true)
-		wronginput("#miss-center");
-	else if (gameletters.solution.includes(word) !== true)
-		wronginput("#invalid-word");
-	else if (found.includes(word))
-		wronginput("#already-found");
-	else if (gameletters.solution.includes(word)){
-		word_score = word.length;
-		if (ispangram(word)) {
-			word_score = word_score + 7;
-			rightword("#pangram", word);
-			return;
-		}
-		if (word.length == 4) {
-			word_score = word_score - 3;
-			rightword("#good", word)
-		}
-		else if (word.length < 7) {
-			rightword("#great", word)
-		}
-		else {
-			rightword("#amazing", word);
-		}
-	}
-}
-
-function ispangram(word) {
-	for (l of gameletters.outer) {
-		if (!(word.includes(l))) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function rightword(selector, word) {
-	$(".points").html("+" + word_score);
-	$(selector).fadeIn(1000);
-	$(selector).fadeOut(500);
-	found.push(word);
-	numFound.innerHTML = found.length;
-	score = score + word_score;
-	currScore.innerHTML = score;
-	found_words.prepend(document.createTextNode(word + " · "));
-}
-
-function wronginput(selector){
-	$(selector).fadeIn(1000);
-	$(selector).fadeOut(500);
-	$("#letter-input").effect("shake", {times:2.5}, 450, function(){} );
-}
-
-const popup = document.getElementById("popup");
-const openBtn = document.getElementById("open-button");
-const closeBtn = document.getElementById("closeBtn");
-
-openBtn.addEventListener("click", () => {
-  popup.style.display = "flex";
-});
-
-closeBtn.addEventListener("click", () => {
-  popup.style.display = "none";
-});
+prepare();
